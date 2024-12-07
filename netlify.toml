@@ -1,6 +1,6 @@
 [build]
-  command = "npm run build"
-  publish = "build/client"
+  command = "pnpm run build" # Команда сборки
+  publish = "build/client"   # Папка, где лежат сгенерированные файлы
 
 [[redirects]]
   from = "/*"
