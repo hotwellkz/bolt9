@@ -1,33 +1,41 @@
-import { cloudflareDevProxyVitePlugin as remixCloudflareDevProxy, vitePlugin as remixVitePlugin } from '@remix-run/dev';
 import UnoCSS from 'unocss/vite';
 import { defineConfig, type ViteDevServer } from 'vite';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { optimizeCssModules } from 'vite-plugin-optimize-css-modules';
 import tsconfigPaths from 'vite-tsconfig-paths';
+import { vitePlugin as remixVitePlugin } from '@remix-run/dev';
 
 export default defineConfig((config) => {
   return {
+    base: './', // Для корректного отображения относительных путей на Netlify
     build: {
-      target: 'esnext',
+      target: 'esnext', // Современные браузеры
+      outDir: 'build/client', // Папка для готовых файлов
+      emptyOutDir: true, // Очищает папку перед сборкой
     },
     plugins: [
       nodePolyfills({
-        include: ['path', 'buffer'],
+        include: ['path', 'buffer'], // Полифиллы для Node.js
       }),
-      config.mode !== 'test' && remixCloudflareDevProxy(),
       remixVitePlugin({
         future: {
           v3_fetcherPersist: true,
           v3_relativeSplatPath: true,
-          v3_throwAbortReason: true
+          v3_throwAbortReason: true,
         },
       }),
-      UnoCSS(),
-      tsconfigPaths(),
-      chrome129IssuePlugin(),
+      UnoCSS(), // Поддержка UnoCSS
+      tsconfigPaths(), // Поддержка путей из tsconfig
+      chrome129IssuePlugin(), // Плагин для локальной разработки
       config.mode === 'production' && optimizeCssModules({ apply: 'build' }),
     ],
-    envPrefix: ["VITE_", "OPENAI_LIKE_API_", "OLLAMA_API_BASE_URL", "LMSTUDIO_API_BASE_URL","TOGETHER_API_BASE_URL"],
+    envPrefix: [
+      'VITE_',
+      'OPENAI_LIKE_API_',
+      'OLLAMA_API_BASE_URL',
+      'LMSTUDIO_API_BASE_URL',
+      'TOGETHER_API_BASE_URL',
+    ],
     css: {
       preprocessorOptions: {
         scss: {
