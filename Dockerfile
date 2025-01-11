@@ -1,3 +1,4 @@
+# Base image
 ARG BASE=node:20.18.0
 FROM ${BASE} AS base
 
@@ -41,22 +42,25 @@ ENV WRANGLER_SEND_METRICS=false \
     TOGETHER_API_KEY=${TOGETHER_API_KEY} \
     TOGETHER_API_BASE_URL=${TOGETHER_API_BASE_URL} \
     VITE_LOG_LEVEL=${VITE_LOG_LEVEL} \
-    DEFAULT_NUM_CTX=${DEFAULT_NUM_CTX}
+    DEFAULT_NUM_CTX=${DEFAULT_NUM_CTX} \
+    NODE_ENV=production \
+    PORT=5173 \
+    RUNNING_IN_DOCKER=true
 
 # Pre-configure wrangler to disable metrics
 RUN mkdir -p /root/.config/.wrangler && \
     echo '{"enabled":false}' > /root/.config/.wrangler/metrics.json
 
-RUN npm run build
+RUN pnpm run build
 
-CMD [ "pnpm", "run", "dockerstart"]
+CMD [ "pnpm", "run", "dockerstart" ]
 
 # Development image
 FROM base AS bolt-ai-development
 
 # Define the same environment variables for development
 ARG GROQ_API_KEY
-ARG HuggingFace 
+ARG HuggingFace_API_KEY
 ARG OPENAI_API_KEY
 ARG ANTHROPIC_API_KEY
 ARG OPEN_ROUTER_API_KEY
@@ -77,7 +81,16 @@ ENV GROQ_API_KEY=${GROQ_API_KEY} \
     TOGETHER_API_KEY=${TOGETHER_API_KEY} \
     TOGETHER_API_BASE_URL=${TOGETHER_API_BASE_URL} \
     VITE_LOG_LEVEL=${VITE_LOG_LEVEL} \
-    DEFAULT_NUM_CTX=${DEFAULT_NUM_CTX}
+    DEFAULT_NUM_CTX=${DEFAULT_NUM_CTX} \
+    NODE_ENV=development \
+    VITE_HMR_PROTOCOL=ws \
+    VITE_HMR_HOST=localhost \
+    VITE_HMR_PORT=5173 \
+    CHOKIDAR_USEPOLLING=true \
+    WATCHPACK_POLLING=true \
+    PORT=5173 \
+    RUNNING_IN_DOCKER=true
 
 RUN mkdir -p ${WORKDIR}/run
-CMD pnpm run dev --host
+
+CMD [ "pnpm", "run", "dev", "--host", "0.0.0.0" ]
